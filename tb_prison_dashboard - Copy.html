@@ -1,0 +1,575 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;font-size:13px;background:#f0f2f5;color:#1a1a2e}
+.wrap{display:flex;height:100vh;min-height:700px;overflow:hidden}
+.sidebar{width:200px;min-width:200px;background:#0d3b8c;color:#fff;display:flex;flex-direction:column;padding:0;overflow-y:auto}
+.sidebar .logo-area{
+  padding:16px;
+  background:#fff;
+  border-bottom:1px solid rgba(0,0,0,.08);
+  border-right:1px solid rgba(0,0,0,.08); /* 👈 เพิ่มเส้นขวา */
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.sidebar .logo-area img{
+  width:120px;     /* 👈 ขยายโลโก้ */
+  height:auto;
+  border-radius:0; /* 👈 เอาวงกลมออก */
+  padding:0;
+}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.7);border-left:3px solid transparent;transition:.15s}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.15);color:#fff;border-left-color:#4da6ff}
+.nav-icon{width:16px;height:16px;opacity:.8}
+.filters-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.5);padding:14px 16px 6px;letter-spacing:.5px;text-transform:uppercase}
+.filter-group{padding:4px 16px 8px}
+.filter-group label{display:block;font-size:10px;color:rgba(255,255,255,.55);margin-bottom:3px}
+.filter-group select{width:100%;padding:5px 8px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:11px;outline:none}
+.filter-group select option{color:#000;background:#fff}
+.clear-btn{margin:8px 16px 14px;padding:6px;border-radius:5px;border:1px solid rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;display:flex;align-items:center;gap:6px;width:calc(100% - 32px)}
+.clear-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{background:#fff;border-bottom:1px solid #e0e4ec;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar .dash-title{font-size:17px;font-weight:700;color:#0d3b8c}
+.topbar .dash-sub{font-size:11px;color:#666;margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.date-picker{display:flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid #d0d5de;border-radius:6px;font-size:11px;color:#333;background:#fff;cursor:pointer}
+.date-picker svg{color:#666}
+.about-btn{padding:5px 12px;border:1px solid #d0d5de;border-radius:6px;font-size:11px;color:#555;background:#fff;cursor:pointer;display:flex;align-items:center;gap:4px}
+.content{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:12px}
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;flex-shrink:0}
+.kpi-card{background:#fff;border-radius:8px;padding:11px 14px;border:1px solid #e4e8f0;position:relative}
+.kpi-card.active-card{border:2px solid #0d3b8c;background:#f0f6ff}
+.kpi-card h4{font-size:10px;color:#666;font-weight:400;margin-bottom:6px;line-height:1.3}
+.kpi-card .val{font-size:22px;font-weight:700;color:#1a1a2e;line-height:1}
+.kpi-card.active-card .val{color:#0d3b8c}
+.kpi-card .delta{font-size:10px;margin-top:5px;display:flex;align-items:center;gap:2px}
+.delta.up{color:#1a7a4a}
+.delta.dn{color:#c0392b}
+.kpi-icon{position:absolute;right:12px;top:12px;width:28px;height:28px;background:#f0f4ff;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.mid-row{display:grid;grid-template-columns:1.35fr 1fr 0.75fr;gap:10px}
+.card{background:#fff;border-radius:8px;border:1px solid #e4e8f0;padding:12px 14px}
+.card-title{font-size:12px;font-weight:600;color:#222;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.card-title .info-icon{color:#aaa;font-size:10px;cursor:pointer}
+.low-row{display:grid;grid-template-columns:1fr 1.1fr 0.9fr;gap:10px}
+.bottom-row{background:#fff;border-radius:8px;border:1px solid #e4e8f0;padding:12px 14px}
+.table-wrap{overflow-x:auto}
+table.perf-table{width:100%;border-collapse:collapse;font-size:11px}
+table.perf-table th{background:#f5f7fb;padding:6px 8px;text-align:left;font-weight:600;color:#555;border-bottom:1px solid #e0e4ec;white-space:nowrap}
+table.perf-table td{padding:6px 8px;border-bottom:1px solid #f0f2f5;white-space:nowrap}
+table.perf-table tr:last-child td{border-bottom:none}
+.badge-red{color:#c0392b;font-weight:600}
+.badge-orange{color:#e67e22;font-weight:600}
+.badge-green{color:#1a7a4a;font-weight:600}
+.status-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dot-red{background:#e74c3c}
+.dot-orange{background:#f39c12}
+.dot-green{background:#27ae60}
+.trend-arrow{font-size:11px}
+.up-arr{color:#e74c3c}
+.dn-arr{color:#27ae60}
+.alert-item{border-left:4px solid #e74c3c;background:#fef5f4;border-radius:0 6px 6px 0;padding:7px 10px;margin-bottom:7px;cursor:pointer;display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
+.alert-item.warn{border-left-color:#f39c12;background:#fef9ec}
+.alert-item.info{border-left-color:#3498db;background:#eef6fd}
+.alert-icon{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px}
+.alert-icon.err{background:#e74c3c;color:#fff}
+.alert-icon.wrn{background:#f39c12;color:#fff}
+.alert-icon.inf{background:#3498db;color:#fff}
+.alert-text{font-size:11px;font-weight:600;color:#222;line-height:1.3}
+.alert-sub{font-size:10px;color:#666;margin-top:1px}
+.view-link{font-size:10px;color:#0d3b8c;text-decoration:none;white-space:nowrap;font-weight:600;flex-shrink:0;align-self:flex-start;margin-top:2px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.view-all{font-size:11px;color:#0d3b8c;cursor:pointer;font-weight:600;text-decoration:none}
+.cascade-wrap{display:flex;align-items:flex-end;gap:0;margin-top:4px}
+.cas-step{display:flex;flex-direction:column;align-items:center;flex:1;position:relative}
+.cas-step .cas-num{font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:2px}
+.cas-step .cas-pct{font-size:9px;color:#666;margin-bottom:6px;text-align:center;line-height:1.2}
+.cas-icon-box{width:44px;height:44px;border-radius:8px;background:#e8f0fe;display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+.cas-arrow{position:absolute;right:-10px;top:50%;transform:translateY(-50%);color:#aaa;font-size:14px;z-index:1}
+.cas-label{font-size:9px;color:#555;font-weight:600;text-align:center;line-height:1.2}
+.delay-chart-area{position:relative;width:100%;height:140px}
+.diag-legend{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.diag-legend-item{display:flex;align-items:center;gap:6px;font-size:10px;color:#444}
+.diag-legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+</style>
+
+<div class="wrap">
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo-area">
+  <img src="dtb.png" class="logo-img">
+</div>
+      <div style="height:8px"></div>
+  <div class="nav-item active">
+    <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Overview
+  </div>
+  <div class="nav-item">
+    <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+    Prison Performance
+  </div>
+  <div class="nav-item">
+    <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+    System Performance
+  </div>
+  <div class="nav-item">
+    <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    Alerts
+  </div>
+  <div class="nav-item">
+    <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Reports
+  </div>
+  <div class="nav-item">
+    <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    Data Quality
+  </div>
+  <div class="nav-item">
+    <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+    Resources
+  </div>
+  <div style="flex:1"></div>
+  <div class="filters-title">Filters</div>
+  <div class="filter-group"><label>Year</label><select><option>2024</option></select></div>
+  <div class="filter-group"><label>Month</label><select><option>May</option></select></div>
+  <div class="filter-group"><label>Region</label><select><option>All</option></select></div>
+  <div class="filter-group"><label>Province / State</label><select><option>All</option></select></div>
+  <button class="clear-btn">
+    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+    Clear all filters
+  </button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="dash-title">TB Prison Dashboard</div>
+      <div class="dash-sub">Global / National Overview</div>
+    </div>
+    <div class="topbar-right">
+      <div class="date-picker">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Data as of: May 2024 ▾
+      </div>
+      <div class="date-picker">Compare with: Apr 2024 ▾</div>
+      <button class="about-btn">ⓘ About</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <!-- KPI ROW -->
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <h4>Prison Population</h4>
+        <div class="val">309,567</div>
+        <div class="delta up">↑ 1.3% vs Apr 2024</div>
+        <div class="kpi-icon"><svg width="16" height="16" fill="none" stroke="#0d3b8c" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+      </div>
+      <div class="kpi-card">
+        <h4>Screened</h4>
+        <div class="val">209,926</div>
+        <div class="delta up">↑ 2.1% vs Apr 2024</div>
+        <div class="kpi-icon"><svg width="16" height="16" fill="none" stroke="#0d3b8c" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+      </div>
+      <div class="kpi-card">
+        <h4>Screening Coverage</h4>
+        <div class="val">67.8%</div>
+        <div class="delta up">↑ 0.8 pp vs Apr 2024</div>
+        <div class="kpi-icon"><svg width="16" height="16" fill="none" stroke="#0d3b8c" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+      </div>
+      <div class="kpi-card">
+        <h4>TB Cases (All forms)</h4>
+        <div class="val">1,152</div>
+        <div class="delta up">↑ 4.6% vs Apr 2024</div>
+        <div class="kpi-icon"><svg width="16" height="16" fill="none" stroke="#0d3b8c" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      </div>
+      <div class="kpi-card active-card">
+        <h4>Notification Rate<br><span style="font-size:9px;font-weight:400">(per 100,000)</span></h4>
+        <div class="val">371</div>
+        <div class="delta up">↑ 3.4% vs Apr 2024</div>
+        <div class="kpi-icon" style="background:#dbeafe"><svg width="16" height="16" fill="none" stroke="#0d3b8c" stroke-width="1.5" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      </div>
+      <div class="kpi-card">
+        <h4>Treatment Initiated</h4>
+        <div class="val">1,086</div>
+        <div style="font-size:10px;color:#1a7a4a;margin-top:5px;font-weight:600">94.3% of TB cases</div>
+        <div class="kpi-icon" style="background:#dcfce7"><svg width="16" height="16" fill="none" stroke="#1a7a4a" stroke-width="1.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      </div>
+    </div>
+
+    <!-- MID ROW -->
+    <div class="mid-row">
+      <!-- Trend chart -->
+      <div class="card">
+        <div class="section-header">
+          <div class="card-title">Trends Over Time <span class="info-icon">ⓘ</span></div>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:10px;color:#555;margin-bottom:8px;align-items:center">
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:20px;height:2px;background:#6aa3d5;display:inline-block"></span>Screening coverage (%)</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:20px;height:2px;background:#1a3a6b;display:inline-block"></span>Notification rate (per 100,000)</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:16px;border-top:2px dashed #6aa3d5;display:inline-block"></span>Target (Screening coverage 90%)</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:16px;border-top:2px dashed #1a3a6b;display:inline-block"></span>Target (Notification rate 500)</span>
+        </div>
+        <div style="position:relative;width:100%;height:170px">
+          <canvas id="trendChart" role="img" aria-label="Trend chart showing screening coverage and notification rate over time">Screening coverage and notification rate trends from Jun 2023 to May 2024.</canvas>
+        </div>
+        <div style="font-size:9px;color:#888;margin-top:4px">pp = percentage points</div>
+      </div>
+
+      <!-- Top 10 prisons -->
+      <div class="card">
+        <div class="section-header">
+          <div class="card-title">Top 10 Prisons by Notification Rate <span style="font-size:9px;font-weight:400;color:#888">(per 100,000)</span></div>
+          <a class="view-all">View all</a>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px">
+          <thead><tr>
+            <th style="padding:3px 5px;color:#888;font-weight:500;text-align:left;font-size:10px">Rank</th>
+            <th style="padding:3px 5px;color:#888;font-weight:500;text-align:left;font-size:10px">Prison</th>
+            <th style="padding:3px 5px;color:#888;font-weight:500;text-align:right;font-size:10px">Rate</th>
+            <th style="padding:3px 5px;color:#888;font-weight:500;text-align:right;font-size:10px">vs Apr 24</th>
+          </tr></thead>
+          <tbody id="topPrisonsBody"></tbody>
+        </table>
+        <div style="border-top:1px dashed #e8eaf0;margin:6px 0"></div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px">
+          <tbody>
+            <tr>
+              <td style="padding:3px 5px;color:#555">45</td>
+              <td style="padding:3px 5px;color:#0d3b8c;cursor:pointer">Prison Y</td>
+              <td style="padding:3px 5px;text-align:right">
+                <div style="background:#4a90d9;height:10px;width:50px;border-radius:2px;display:inline-block;vertical-align:middle;margin-right:4px"></div>156
+              </td>
+              <td style="padding:3px 5px;text-align:right;color:#27ae60;font-size:10px">↓ -12%</td>
+            </tr>
+            <tr>
+              <td style="padding:3px 5px;color:#555">46</td>
+              <td style="padding:3px 5px;color:#0d3b8c;cursor:pointer">Prison Z</td>
+              <td style="padding:3px 5px;text-align:right">
+                <div style="background:#4a90d9;height:10px;width:32px;border-radius:2px;display:inline-block;vertical-align:middle;margin-right:4px"></div>98
+              </td>
+              <td style="padding:3px 5px;text-align:right;color:#27ae60;font-size:10px">↓ -18%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Alerts -->
+      <div class="card">
+        <div class="section-header">
+          <div class="card-title">Alerts <span style="background:#e74c3c;color:#fff;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:700">7</span></div>
+          <a class="view-all">View all</a>
+        </div>
+        <div class="alert-item">
+          <div class="alert-icon err">!</div>
+          <div style="flex:1">
+            <div class="alert-text">Low screening coverage</div>
+            <div class="alert-sub">12 prisons have coverage &lt; 70%</div>
+          </div>
+          <span class="view-link">›</span>
+        </div>
+        <div class="alert-item">
+          <div class="alert-icon err">!</div>
+          <div style="flex:1">
+            <div class="alert-text">Declining notification rate</div>
+            <div class="alert-sub">8 prisons have decreased &gt; 20%</div>
+          </div>
+          <span class="view-link">›</span>
+        </div>
+        <div class="alert-item warn">
+          <div class="alert-icon wrn">!</div>
+          <div style="flex:1">
+            <div class="alert-text">Long diagnostic delay</div>
+            <div class="alert-sub">14 prisons have median delay &gt; 7 days</div>
+          </div>
+          <span class="view-link">›</span>
+        </div>
+        <div class="alert-item warn">
+          <div class="alert-icon wrn">!</div>
+          <div style="flex:1">
+            <div class="alert-text">No TB cases reported</div>
+            <div class="alert-sub">5 prisons reported no TB cases this month</div>
+          </div>
+          <span class="view-link">›</span>
+        </div>
+        <div class="alert-item info">
+          <div class="alert-icon inf">i</div>
+          <div style="flex:1">
+            <div class="alert-text">Data quality issues</div>
+            <div class="alert-sub">3 prisons with incomplete reporting</div>
+          </div>
+          <span class="view-link">›</span>
+        </div>
+        <a class="view-all" style="display:block;text-align:center;margin-top:6px;font-size:11px">View all alerts</a>
+      </div>
+    </div>
+
+    <!-- LOW ROW -->
+    <div class="low-row">
+      <!-- Cascade -->
+      <div class="card">
+        <div class="card-title">TB Screening Cascade <span style="background:#dbeafe;color:#0d3b8c;font-size:9px;padding:1px 7px;border-radius:10px;font-weight:600">This Month</span> <span class="info-icon">ⓘ</span></div>
+        <div style="display:flex;align-items:flex-start;gap:0;margin-top:4px">
+          <div class="cas-step" style="position:relative">
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="7" fill="#e8f0fe"/><path d="M18 10a4 4 0 100 8 4 4 0 000-8zM10 26c0-4 3.6-7 8-7s8 3 8 7" stroke="#0d3b8c" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <div style="font-size:12px;font-weight:700;margin-top:4px;text-align:center">309,567</div>
+            <div style="font-size:9px;color:#555;text-align:center;margin-top:1px">Eligible<br>Population</div>
+            <div style="position:absolute;right:-10px;top:16px;color:#aaa;font-size:14px;z-index:1">›</div>
+          </div>
+          <div style="width:20px"></div>
+          <div class="cas-step" style="position:relative">
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="7" fill="#e8f0fe"/><circle cx="18" cy="18" r="8" stroke="#0d3b8c" stroke-width="1.5"/><line x1="14" y1="18" x2="22" y2="18" stroke="#0d3b8c" stroke-width="1.5"/><line x1="21" y1="14" x2="25" y2="18" stroke="#0d3b8c" stroke-width="1.5"/><line x1="21" y1="22" x2="25" y2="18" stroke="#0d3b8c" stroke-width="1.5"/></svg>
+            <div style="font-size:12px;font-weight:700;margin-top:4px;text-align:center">209,926</div>
+            <div style="font-size:9px;color:#1a7a4a;font-weight:600;text-align:center">67.8%</div>
+            <div style="font-size:8px;color:#888;text-align:center">of eligible</div>
+            <div style="font-size:9px;color:#555;text-align:center;margin-top:1px">Screened</div>
+            <div style="position:absolute;right:-10px;top:16px;color:#aaa;font-size:14px;z-index:1">›</div>
+          </div>
+          <div style="width:20px"></div>
+          <div class="cas-step" style="position:relative">
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="7" fill="#e8f0fe"/><path d="M18 8c-2 0-5 2-5 6 0 2 1 4 5 8 4-4 5-6 5-8 0-4-3-6-5-6z" stroke="#0d3b8c" stroke-width="1.5" stroke-linejoin="round"/></svg>
+            <div style="font-size:12px;font-weight:700;margin-top:4px;text-align:center">10,452</div>
+            <div style="font-size:9px;color:#1a7a4a;font-weight:600;text-align:center">5.0%</div>
+            <div style="font-size:8px;color:#888;text-align:center">of screened</div>
+            <div style="font-size:9px;color:#555;text-align:center;margin-top:1px">Presumptive<br>TB</div>
+            <div style="position:absolute;right:-10px;top:16px;color:#aaa;font-size:14px;z-index:1">›</div>
+          </div>
+          <div style="width:20px"></div>
+          <div class="cas-step" style="position:relative">
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="7" fill="#e8f0fe"/><rect x="12" y="10" width="12" height="16" rx="2" stroke="#0d3b8c" stroke-width="1.5"/><line x1="15" y1="15" x2="21" y2="15" stroke="#0d3b8c" stroke-width="1.2"/><line x1="15" y1="18" x2="21" y2="18" stroke="#0d3b8c" stroke-width="1.2"/></svg>
+            <div style="font-size:12px;font-weight:700;margin-top:4px;text-align:center">8,364</div>
+            <div style="font-size:9px;color:#1a7a4a;font-weight:600;text-align:center">80.0%</div>
+            <div style="font-size:8px;color:#888;text-align:center">of presumptive</div>
+            <div style="font-size:9px;color:#555;text-align:center;margin-top:1px">Tested</div>
+            <div style="position:absolute;right:-10px;top:16px;color:#aaa;font-size:14px;z-index:1">›</div>
+          </div>
+          <div style="width:20px"></div>
+          <div class="cas-step" style="position:relative">
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="7" fill="#e8f0fe"/><path d="M11 18l5 5 9-9" stroke="#0d3b8c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div style="font-size:12px;font-weight:700;margin-top:4px;text-align:center">1,152</div>
+            <div style="font-size:9px;color:#1a7a4a;font-weight:600;text-align:center">13.8%</div>
+            <div style="font-size:8px;color:#888;text-align:center">of tested</div>
+            <div style="font-size:9px;color:#555;text-align:center;margin-top:1px">Diagnosed<br>(All forms)</div>
+            <div style="position:absolute;right:-10px;top:16px;color:#aaa;font-size:14px;z-index:1">›</div>
+          </div>
+          <div style="width:20px"></div>
+          <div class="cas-step">
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="7" fill="#e8f0fe"/><rect x="11" y="14" width="14" height="10" rx="2" stroke="#0d3b8c" stroke-width="1.5"/><path d="M15 14v-2a1 1 0 011-1h4a1 1 0 011 1v2" stroke="#0d3b8c" stroke-width="1.5"/></svg>
+            <div style="font-size:12px;font-weight:700;margin-top:4px;text-align:center">1,086</div>
+            <div style="font-size:9px;color:#1a7a4a;font-weight:600;text-align:center">94.3%</div>
+            <div style="font-size:8px;color:#888;text-align:center">of diagnosed</div>
+            <div style="font-size:9px;color:#555;text-align:center;margin-top:1px">Treatment<br>Initiated</div>
+          </div>
+        </div>
+        <div style="font-size:9px;color:#888;margin-top:8px">* All forms includes Bacteriologically Confirmed and Clinically Diagnosed</div>
+      </div>
+
+      <!-- Median Diagnostic Delay -->
+      <div class="card">
+        <div class="card-title">Median Diagnostic Delay <span style="font-size:9px;font-weight:400;color:#888">(days)</span></div>
+        <div style="display:flex;gap:12px;font-size:10px;color:#555;margin-bottom:8px;align-items:center">
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#6aa3d5;display:inline-block"></span>Screening to Diagnosis</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#1a3a6b;display:inline-block"></span>Diagnosis to Treatment</span>
+        </div>
+        <div id="delayBars"></div>
+        <div style="border-top:1px solid #e8eaf0;margin-top:6px;padding-top:4px">
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#888;padding:0 2px">
+            <span>0</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span><span>30</span>
+          </div>
+          <div style="font-size:9px;color:#888;text-align:center;margin-top:2px">Days</div>
+        </div>
+      </div>
+
+      <!-- Diagnostic Tools -->
+      <div class="card">
+        <div class="card-title">Diagnostic Tools Utilization <span style="background:#dbeafe;color:#0d3b8c;font-size:9px;padding:1px 7px;border-radius:10px;font-weight:600">This Month</span> <span class="info-icon">ⓘ</span></div>
+        <div style="display:flex;align-items:center;gap:14px;margin-top:6px">
+          <div style="position:relative;width:110px;height:110px;flex-shrink:0">
+            <canvas id="toolChart" role="img" aria-label="Donut chart of diagnostic tool utilization">X-ray 64.2%, GeneXpert 22.7%, Smear Microscopy 10.5%, Other 2.6%.</canvas>
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+              <div style="font-size:14px;font-weight:700;color:#1a1a2e">8,364</div>
+              <div style="font-size:8px;color:#888">Total tested</div>
+            </div>
+          </div>
+          <div style="flex:1">
+            <div class="diag-legend">
+              <div class="diag-legend-item"><div class="diag-legend-dot" style="background:#4472c4"></div><span>X-ray</span><span style="margin-left:auto;font-weight:600">64.2%</span></div>
+              <div class="diag-legend-item"><div class="diag-legend-dot" style="background:#27ae60"></div><span>GeneXpert</span><span style="margin-left:auto;font-weight:600">22.7%</span></div>
+              <div class="diag-legend-item"><div class="diag-legend-dot" style="background:#8e44ad"></div><span>Smear Microscopy</span><span style="margin-left:auto;font-weight:600">10.5%</span></div>
+              <div class="diag-legend-item"><div class="diag-legend-dot" style="background:#bdc3c7"></div><span>Other / Not reported</span><span style="margin-left:auto;font-weight:600">2.6%</span></div>
+            </div>
+            <div style="font-size:9px;color:#888;margin-top:6px">% of tested individuals</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM TABLE -->
+    <div class="bottom-row">
+      <div class="section-header">
+        <div class="card-title">Prison Performance Summary <span class="info-icon">ⓘ</span></div>
+        <a class="view-all">View all prisons</a>
+      </div>
+      <div class="table-wrap">
+        <table class="perf-table">
+          <thead>
+            <tr>
+              <th>Prison</th>
+              <th>Province / State</th>
+              <th>Population</th>
+              <th>Screening<br>Coverage (%)</th>
+              <th>Notification Rate<br>(per 100,000)</th>
+              <th>TB Cases<br>(All forms)</th>
+              <th>Treatment<br>Initiated (%)</th>
+              <th colspan="2">Median Delay (Days)</th>
+              <th colspan="2">Trend vs Previous Month</th>
+              <th>Status</th>
+            </tr>
+            <tr style="background:#f5f7fb">
+              <th colspan="7"></th>
+              <th style="font-size:9px;color:#888;font-weight:500">Screening to Dx</th>
+              <th style="font-size:9px;color:#888;font-weight:500">Dx to Treatment</th>
+              <th style="font-size:9px;color:#888;font-weight:500">Coverage</th>
+              <th style="font-size:9px;color:#888;font-weight:500">Notif. Rate</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color:#0d3b8c;cursor:pointer;font-weight:500">Prison A</td>
+              <td>Province 1</td><td>4,850</td>
+              <td class="badge-red">52.4%</td>
+              <td class="badge-red">1,125</td>
+              <td>54</td><td>92.6%</td><td>12</td><td>4</td>
+              <td><span class="trend-arrow up-arr">↓</span></td>
+              <td><span class="trend-arrow up-arr">↑</span></td>
+              <td><span class="status-dot dot-red"></span></td>
+            </tr>
+            <tr>
+              <td style="color:#0d3b8c;cursor:pointer;font-weight:500">Prison B</td>
+              <td>Province 1</td><td>3,210</td>
+              <td class="badge-orange">68.1%</td>
+              <td class="badge-orange">892</td>
+              <td>29</td><td>93.1%</td><td>9</td><td>3</td>
+              <td><span class="trend-arrow dn-arr">↑</span></td>
+              <td><span class="trend-arrow dn-arr">↑</span></td>
+              <td><span class="status-dot dot-orange"></span></td>
+            </tr>
+            <tr>
+              <td style="color:#0d3b8c;cursor:pointer;font-weight:500">Prison C</td>
+              <td>Province 2</td><td>2,940</td>
+              <td class="badge-green">88.7%</td>
+              <td class="badge-orange">721</td>
+              <td>21</td><td>95.2%</td><td>6</td><td>2</td>
+              <td><span class="trend-arrow dn-arr">↑</span></td>
+              <td><span class="trend-arrow up-arr">↑</span></td>
+              <td><span class="status-dot dot-orange"></span></td>
+            </tr>
+            <tr>
+              <td style="color:#0d3b8c;cursor:pointer;font-weight:500">Prison D</td>
+              <td>Province 2</td><td>5,120</td>
+              <td class="badge-green">91.5%</td>
+              <td class="badge-orange">612</td>
+              <td>31</td><td>96.8%</td><td>5</td><td>2</td>
+              <td><span class="trend-arrow dn-arr">↑</span></td>
+              <td><span class="trend-arrow up-arr">↓</span></td>
+              <td><span class="status-dot dot-green"></span></td>
+            </tr>
+            <tr>
+              <td style="color:#0d3b8c;cursor:pointer;font-weight:500">Prison E</td>
+              <td>Province 3</td><td>6,780</td>
+              <td class="badge-green">93.2%</td>
+              <td class="badge-orange">541</td>
+              <td>37</td><td>97.3%</td><td>4</td><td>1</td>
+              <td><span class="trend-arrow dn-arr">↑</span></td>
+              <td><span class="trend-arrow up-arr">↓</span></td>
+              <td><span class="status-dot dot-green"></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="font-size:9px;color:#888;margin-top:5px">Note: Click on a prison name to view detailed dashboard</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const topPrisons = [
+  {rank:1,name:'Prison A',rate:1125,delta:'+15%',up:false},
+  {rank:2,name:'Prison B',rate:892,delta:'+8%',up:false},
+  {rank:3,name:'Prison C',rate:721,delta:'+5%',up:false},
+  {rank:4,name:'Prison D',rate:612,delta:'+2%',up:false},
+  {rank:5,name:'Prison E',rate:541,delta:'-3%',up:true},
+];
+const tbody = document.getElementById('topPrisonsBody');
+topPrisons.forEach(p => {
+  const tr = document.createElement('tr');
+  const barW = Math.round((p.rate/1125)*80);
+  const isUp = p.delta.startsWith('-');
+  tr.innerHTML = `<td style="padding:3px 5px;color:#555">${p.rank}</td>
+    <td style="padding:3px 5px;color:#0d3b8c;cursor:pointer">${p.name}</td>
+    <td style="padding:3px 5px;text-align:right"><div style="background:#e74c3c;height:10px;width:${barW}px;border-radius:2px;display:inline-block;vertical-align:middle;margin-right:4px"></div>${p.rate}</td>
+    <td style="padding:3px 5px;text-align:right;font-size:10px;color:${isUp?'#27ae60':'#e74c3c'}">${isUp?'↓':'↑'} ${p.delta}</td>`;
+  tbody.appendChild(tr);
+});
+
+const months = ['Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May'];
+new Chart(document.getElementById('trendChart'), {
+  type:'line',
+  data:{
+    labels: months,
+    datasets:[
+      {label:'Screening coverage (%)',data:[64,65,65,66,65,66,67,66,67,67,67,68],borderColor:'#6aa3d5',backgroundColor:'rgba(106,163,213,.08)',tension:.4,fill:true,yAxisID:'y',borderWidth:2,pointRadius:3,pointBackgroundColor:'#6aa3d5'},
+      {label:'Notification rate',data:[340,345,342,348,350,352,355,355,358,360,362,371],borderColor:'#1a3a6b',tension:.4,fill:false,yAxisID:'y2',borderWidth:2,pointRadius:3,pointBackgroundColor:'#1a3a6b'},
+      {label:'Target screen 90%',data:[90,90,90,90,90,90,90,90,90,90,90,90],borderColor:'#6aa3d5',borderDash:[5,4],borderWidth:1.5,pointRadius:0,fill:false,yAxisID:'y'},
+      {label:'Target notif 500',data:[500,500,500,500,500,500,500,500,500,500,500,500],borderColor:'#1a3a6b',borderDash:[5,4],borderWidth:1.5,pointRadius:0,fill:false,yAxisID:'y2'},
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      y:{min:0,max:100,position:'left',ticks:{callback:v=>v+'%',font:{size:9}},grid:{color:'rgba(0,0,0,.06)'}},
+      y2:{min:0,max:1000,position:'right',ticks:{font:{size:9}},grid:{display:false}}
+    }
+  }
+});
+
+new Chart(document.getElementById('toolChart'), {
+  type:'doughnut',
+  data:{
+    labels:['X-ray','GeneXpert','Smear','Other'],
+    datasets:[{data:[64.2,22.7,10.5,2.6],backgroundColor:['#4472c4','#27ae60','#8e44ad','#bdc3c7'],borderWidth:2,borderColor:'#fff'}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'65%'}
+});
+
+const delayData = [
+  {label:'Overall',s2d:6,d2t:2},
+  {label:'Min',s2d:1,d2t:0.5},
+  {label:'Max',s2d:24,d2t:15},
+];
+const delayEl = document.getElementById('delayBars');
+const maxDays = 30;
+delayData.forEach(d => {
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:10px';
+  const labelW = 40;
+  const s2dW = Math.round((d.s2d/maxDays)*140);
+  const d2tW = Math.round((d.d2t/maxDays)*140);
+  row.innerHTML = `
+    <span style="width:${labelW}px;color:#555;flex-shrink:0">${d.label}</span>
+    <div style="display:flex;align-items:center;gap:4px">
+      <div style="background:#6aa3d5;height:16px;width:${s2dW}px;border-radius:2px;display:flex;align-items:center;padding:0 4px;color:#fff;font-size:9px;font-weight:700;min-width:18px">${d.s2d}</div>
+      <div style="background:#1a3a6b;height:16px;width:${d2tW}px;border-radius:2px;display:flex;align-items:center;padding:0 4px;color:#fff;font-size:9px;font-weight:700;min-width:14px">${d.d2t}</div>
+    </div>`;
+  delayEl.appendChild(row);
+});
+</script>
